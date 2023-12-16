@@ -1,7 +1,7 @@
 export type TemplateData = {
   id: string;
   name: string;
-  desciption: string;
+  description: string;
   repo: string;
   layout: {
     rows: number;
@@ -29,8 +29,9 @@ export type Project = {
   createdAt: string;
   updatedAt: string;
   isTemplate: true;
+  isPublic: boolean;
   video: string;
-  templateStatus: "active" | "coming_soon";
+  templateStatus: "active" | "coming_soon" | null;
 };
 
 export type Scene = {

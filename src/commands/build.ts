@@ -3,13 +3,7 @@ import JSZip from "jszip";
 import { v4 } from "uuid";
 import { hashV1 } from "@dcl/hashing";
 import mimeTypes from "mime-types";
-import {
-  createDirectory,
-  list,
-  readBuffer,
-  readJson,
-  writeFile,
-} from "../lib/fs";
+import { list, readBuffer, readJson, writeFile } from "../lib/fs";
 import { Manifest, TemplateData } from "../lib/types";
 import { getStorageUrl } from "../lib/s3";
 import { HeadObjectCommand, S3, S3ClientConfigType } from "@aws-sdk/client-s3";
@@ -30,6 +24,7 @@ async function main() {
   const templatePaths = await list(templatesFolder);
   const templates: Manifest[] = [];
   for (const templateName of templatePaths.filter(($) => !$.startsWith("."))) {
+    // load template data
     const basePath = resolve(templatesFolder, templateName);
     const template: TemplateData = await readJson(
       resolve(basePath, `data.json`)
@@ -37,6 +32,7 @@ async function main() {
 
     console.log(`Template: ${template.name}`);
 
+    // download .zip contents from template repo
     const response = await fetch(
       `${template.repo}/archive/refs/heads/main.zip`
     );
@@ -70,6 +66,7 @@ async function main() {
 
     console.log(`Files: ${files.size}`);
 
+    // generate special files (composite, previews)
     const composite = JSON.parse(
       new TextDecoder().decode(files.get("assets/scene/main.composite"))
     );
@@ -78,15 +75,18 @@ async function main() {
       "preview.png",
       await readBuffer(resolve(basePath, "preview.png"))
     );
-    const thumbnail = getStorageUrl(await hashV1(files.get("preview.png")!));
 
     files.set(
       "preview.mp4",
       await readBuffer(resolve(basePath, "preview.mp4"))
     );
-    const video = getStorageUrl(await hashV1(files.get("preview.mp4")!));
 
+    // build manifest
     const sceneId = v4();
+
+    const thumbnail = getStorageUrl(await hashV1(files.get("preview.png")!));
+
+    const video = getStorageUrl(await hashV1(files.get("preview.mp4")!));
 
     const createdAt = new Date().toISOString();
 
@@ -95,7 +95,7 @@ async function main() {
       project: {
         id: template.id,
         title: template.name,
-        description: template.desciption,
+        description: template.description,
         thumbnail,
         sceneId,
         ethAddress: null,
@@ -105,6 +105,7 @@ async function main() {
         isTemplate: true,
         video,
         templateStatus: "active",
+        isPublic: true,
       },
       scene: {
         sdk6: null,
@@ -115,6 +116,8 @@ async function main() {
         },
       },
     };
+
+    // upload contents to S3
 
     console.log("Bucket Name:", S3_BUCKET_NAME);
     console.log("Region:", S3_REGION);
@@ -178,6 +181,7 @@ async function main() {
       }
     }
 
+    // add upload task to queue
     for (const [path, file] of files) {
       queue.add(() => upload(path, file));
     }
@@ -185,16 +189,26 @@ async function main() {
     // wait for upload queue to finish
     await queue.onIdle();
 
+    // push template to template list
     templates.push(manifest);
-    console.log(`Template "${template.name}" build successfully!`);
+    console.log(`Template "${template.name}" built successfully!`);
   }
 
+  // sort templates
+  templates.sort((template1, template2) => {
+    if (template1.project.templateStatus === "coming_soon") {
+      return 1;
+    }
+
+    if (template2.project.templateStatus === "coming_soon") {
+      return -1;
+    }
+    return 0;
+  });
+
+  // write template list as a json in the dist folder
   console.log(`Saving output...`);
-  await createDirectory("dist");
-  await writeFile(
-    `dist/templates.json`,
-    JSON.stringify({ templates }, null, 2)
-  );
+  await writeFile(`templates.json`, JSON.stringify({ templates }, null, 2));
   console.log(`Done!`);
 }
 
