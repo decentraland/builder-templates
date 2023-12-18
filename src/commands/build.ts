@@ -3,6 +3,7 @@ import JSZip from "jszip";
 import { v4 } from "uuid";
 import { hashV1 } from "@dcl/hashing";
 import mimeTypes from "mime-types";
+import fetch from "node-fetch";
 import { list, readBuffer, readJson, writeFile } from "../lib/fs";
 import { Manifest, TemplateData } from "../lib/types";
 import { getStorageUrl } from "../lib/s3";
