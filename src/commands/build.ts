@@ -135,9 +135,6 @@ async function main() {
 
     // upload contents to S3
 
-    console.log("Bucket Name:", S3_BUCKET_NAME);
-    console.log("Region:", S3_REGION);
-
     let config: S3ClientConfigType = {
       region: S3_REGION,
       credentials: {
