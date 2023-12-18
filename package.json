@@ -9,19 +9,17 @@
     "@aws-sdk/client-s3": "^3.470.0",
     "@aws-sdk/lib-storage": "^3.470.0",
     "@dcl/hashing": "^3.0.4",
+    "@types/node-fetch": "^2.6.9",
     "@types/mime-types": "^2.1.4",
     "@types/uuid": "^9.0.7",
     "dotenv": "^16.3.1",
     "fp-future": "^1.0.1",
     "jszip": "^3.10.1",
+    "node-fetch": "^2.7.0",
     "mime-types": "^2.1.35",
     "p-queue": "^8.0.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.3.3",
     "uuid": "^9.0.1"
-  },
-  "dependencies": {
-    "@types/node-fetch": "^2.6.9",
-    "node-fetch": "^2.7.0"
   }
 }
