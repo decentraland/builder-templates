@@ -19,6 +19,11 @@ import { Upload } from "@aws-sdk/lib-storage";
 
 const COMPOSITE_PATH = "assets/scene/main.composite";
 
+const EMPTY_COMPOSITE = {
+  version: 1,
+  components: [],
+};
+
 async function main() {
   const templatesFolder = resolve(`templates`);
   const templatePaths = await list(templatesFolder);
@@ -32,44 +37,55 @@ async function main() {
 
     console.log(`Template: ${template.name}`);
 
-    // download .zip contents from template repo
-    const response = await fetch(
-      `${template.repo}/archive/refs/heads/main.zip`
-    );
-    const data = await response.arrayBuffer();
-    console.log(`Zip file: ${data.byteLength} bytes`);
-
-    const zip = await JSZip.loadAsync(Buffer.from(data));
-
-    const allPaths = Object.keys(zip.files);
-    const assetsPath = allPaths.find(($) => $.endsWith("/assets/"));
-    if (!assetsPath) {
-      throw new Error(`Invalid zip file: could not find "/assets" directory`);
-    }
-
     const files = new Map<string, Buffer>();
     const mappings: Record<string, string> = {};
 
-    for (const file of zip
-      .folder(assetsPath)!
-      .filter((_path, file) => !file.dir)) {
-      const path = file.name.slice(file.name.indexOf("/assets/") + 1);
-      const data = await file.async("arraybuffer");
-      const buffer = Buffer.from(data);
-      files.set(path, buffer);
-      mappings[path] = await hashV1(buffer);
+    let composite = EMPTY_COMPOSITE;
+    let templateStatus: "active" | "coming_soon" = "coming_soon";
+
+    if (template.repo) {
+      // download .zip contents from template repo
+      const response = await fetch(
+        `${template.repo}/archive/refs/heads/main.zip`
+      );
+      const data = await response.arrayBuffer();
+      console.log(`Zip file: ${data.byteLength} bytes`);
+
+      const zip = await JSZip.loadAsync(Buffer.from(data));
+
+      const allPaths = Object.keys(zip.files);
+      const assetsPath = allPaths.find(($) => $.endsWith("/assets/"));
+      if (!assetsPath) {
+        throw new Error(`Invalid zip file: could not find "/assets" directory`);
+      }
+
+      for (const file of zip
+        .folder(assetsPath)!
+        .filter((_path, file) => !file.dir)) {
+        const path = file.name.slice(file.name.indexOf("/assets/") + 1);
+        const data = await file.async("arraybuffer");
+        const buffer = Buffer.from(data);
+        files.set(path, buffer);
+        mappings[path] = await hashV1(buffer);
+      }
+
+      if (!files.has(COMPOSITE_PATH)) {
+        throw new Error(`Invalid zip: could not find "${COMPOSITE_PATH}"`);
+      }
+
+      console.log(`Files: ${files.size}`);
+
+      // generate special files (composite, previews)
+      composite = JSON.parse(
+        new TextDecoder().decode(files.get("assets/scene/main.composite"))
+      );
+
+      templateStatus = "active";
+    } else {
+      console.log(
+        `Template has no repo defined, will be flagged as "coming soon"`
+      );
     }
-
-    if (!files.has(COMPOSITE_PATH)) {
-      throw new Error(`Invalid zip: could not find "${COMPOSITE_PATH}"`);
-    }
-
-    console.log(`Files: ${files.size}`);
-
-    // generate special files (composite, previews)
-    const composite = JSON.parse(
-      new TextDecoder().decode(files.get("assets/scene/main.composite"))
-    );
 
     files.set(
       "preview.png",
@@ -104,7 +120,7 @@ async function main() {
         updatedAt: createdAt,
         isTemplate: true,
         video,
-        templateStatus: "active",
+        templateStatus,
         isPublic: true,
       },
       scene: {
@@ -205,6 +221,17 @@ async function main() {
     }
     return 0;
   });
+
+  // check project ids are unique
+  const ids = new Set<string>();
+  for (const template of templates) {
+    if (ids.has(template.project.id)) {
+      throw new Error(
+        `Template "${template.project.title}" has a repeated id!`
+      );
+    }
+    ids.add(template.project.id);
+  }
 
   // write template list as a json in the dist folder
   console.log(`Saving output...`);

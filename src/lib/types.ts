@@ -2,7 +2,7 @@ export type TemplateData = {
   id: string;
   name: string;
   description: string;
-  repo: string;
+  repo?: string;
   layout: {
     rows: number;
     cols: number;
