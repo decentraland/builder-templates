@@ -20,8 +20,8 @@ jobs:
         run: npm run build
         env:
           BUILDER_SERVER_URL: https://builder-api.decentraland.zone
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID_DEV }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY_DEV }}
+          AWS_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY_DEV }}
+          AWS_ACCESS_SECRET: ${{ secrets.AWS_ACCESS_SECRET_DEV }}
           S3_BUCKET_NAME: ${{ secrets.S3_BUCKET_NAME_DEV }}
           S3_REGION: us-east-1
           S3_UPLOAD_CONCURRENCY: 20
@@ -29,8 +29,8 @@ jobs:
         run: npm run build
         env:
           BUILDER_SERVER_URL: https://builder-api.decentraland.today
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID_STG }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY_STG }}
+          AWS_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY_STG }}
+          AWS_ACCESS_SECRET: ${{ secrets.AWS_ACCESS_SECRET_STG }}
           S3_BUCKET_NAME: ${{ secrets.S3_BUCKET_NAME_STG }}
           S3_REGION: us-east-1
           S3_UPLOAD_CONCURRENCY: 20
