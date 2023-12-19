@@ -1,0 +1,10 @@
+{
+  "id": "7298f063-52f4-4d5c-b348-3d040bc4de16",
+  "name": "The Theatre",
+  "description": "Your theatre in Decentraland ideal for your own World. Invite friends, host parties and share your best art, videos and music.",
+  "repo": "https://github.com/surz90/sdk7_template_the_theatre",
+  "layout": {
+    "rows": 6,
+    "cols": 6
+  }
+}
