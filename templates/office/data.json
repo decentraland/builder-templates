@@ -2,6 +2,7 @@
   "id": "9851b6ff-b5e8-4791-b661-6e6a7bb0c5ee",
   "name": "The Office",
   "description": "Your office in Decentraland ideal for your own World. Invite friends, host parties and share your best art, videos and music.",
+  "repo": "https://github.com/surz90/sdk7_template_the_office",
   "layout": {
     "rows": 8,
     "cols": 8
