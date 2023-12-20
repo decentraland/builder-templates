@@ -1,0 +1,10 @@
+{
+  "id": "1eb91924-4000-4c0e-bccf-d8d3474fd3df",
+  "name": "The Night Club",
+  "description": "Your own night club in Decentraland, ideal for your own World.",
+  "repo": "https://github.com/vrglitch/nightClub_Temp_sdk7",
+  "layout": {
+    "rows": 8,
+    "cols": 8
+  }
+}
